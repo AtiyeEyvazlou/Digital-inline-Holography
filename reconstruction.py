@@ -58,17 +58,17 @@ import matplotlib.patches as patches
 
 def forward_propagate(dp, z):  # eq 28
 
-    x = np.arange(-dp.shape[0] / 2, dp.shape[0] / 2)
-    y = np.arange(-dp.shape[1] / 2, dp.shape[1] / 2)
-    X, Y = np.meshgrid(x, y)
-    deltafx = 1 / (dp.shape[0] * cam_spacing)
-    deltafy = 1 / (dp.shape[1] * cam_spacing)
+    x = np.arange(-dp.shape[0] / 2, dp.shape[0] / 2) # x axis
+    y = np.arange(-dp.shape[1] / 2, dp.shape[1] / 2) # y axis
+    X, Y = np.meshgrid(x, y) # xy plane
+    deltafx = 1 / (dp.shape[0] * cam_spacing) # spatial frequency in x axis
+    deltafy = 1 / (dp.shape[1] * cam_spacing) # spatial frequency in y axis
 
-    OB_spectrum = fftshift(fft2(fftshift(dp * deltafx)))
+    OB_spectrum = fftshift(fft2(fftshift(dp * deltafx))) # object spectrum
     aa = np.sqrt(1 - (illum_wavelen * X * deltafx) ** 2 - (illum_wavelen * Y * deltafy) ** 2)
-    S = np.exp(1j * 2 * np.pi * z / illum_wavelen * aa)
-    c = S * OB_spectrum
-    d = fftshift(ifft2(fftshift(c)))
+    S = np.exp(1j * 2 * np.pi * z / illum_wavelen * aa) # impulse function of light propagation in distance z
+    c = S * OB_spectrum 
+    d = fftshift(ifft2(fftshift(c))) # impulse response of light propagation in distance z
     return d
 
 
@@ -78,26 +78,17 @@ def back_propagate(cam_abs, z):  # eq 29
 
     a = fftshift(fft2(fftshift(cam_abs)))
 
-    x = np.arange(-cam_abs.shape[0] / 2, cam_abs.shape[0] / 2)
-    y = np.arange(-cam_abs.shape[1] / 2, cam_abs.shape[1] / 2)
-    X, Y = np.meshgrid(x, y)
-    deltafx = 1 / (cam_abs.shape[0] * cam_spacing)
-    deltafy = 1 / (cam_abs.shape[1] * cam_spacing)
+    x = np.arange(-cam_abs.shape[0] / 2, cam_abs.shape[0] / 2) # x axis
+    y = np.arange(-cam_abs.shape[1] / 2, cam_abs.shape[1] / 2) # y axis
+    X, Y = np.meshgrid(x, y) # xy plane
+    deltafx = 1 / (cam_abs.shape[0] * cam_spacing) # spatial frequency in x axis
+    deltafy = 1 / (cam_abs.shape[1] * cam_spacing) # spatial frequency in y axis
+  
     aa = np.sqrt(1 - (illum_wavelen * X * deltafx) ** 2 - (illum_wavelen * Y * deltafy) ** 2)
-    b = np.exp(-1j * 2 * np.pi * z / illum_wavelen * aa)
+    b = np.exp(-1j * 2 * np.pi * z / illum_wavelen * aa)  # impulse function of light propagation in distance z
     c = a * b
-    d = fftshift(ifft2(fftshift(c)))
+    d = fftshift(ifft2(fftshift(c))) # impulse function of light propagation in distance z
     return d
-
-
-# %%
-
-def apply_cosine_window(image):
-    rows, cols = image.shape[:2]
-    window = np.hanning(rows)[:, np.newaxis] * np.hanning(cols)  # han : w(n) = 0.5 * (1 - cos(2πn / (N-1)))
-    windowed_image = image * window
-    return windowed_image
-
 
 # %% psnr
 def calculate_psnr(original_image, reconstructed_image):
@@ -235,6 +226,7 @@ dp = cv2.imread(path)  # read the image
 dp = cv2.cvtColor(dp, cv2.COLOR_BGR2GRAY)  # turn the RGB image to grayscale one
 dp = 1 - dp / 255
 
+#support matrix generation
 support = np.full(dp.shape, False)
 Rx = dp.shape[0] / 4
 Ry = dp.shape[1] / 4
@@ -244,27 +236,6 @@ for m in range(dp.shape[0]):
         y = dp.shape[1] / 2 - n
         if abs(x) < Rx and abs(y) < Ry:
             support[m, n] = True
-
-# path = 'G:\Project\coding\pycharm projects\my_files\holo2.png'
-# dp = cv2.imread(path)                                # read the image
-# dp = cv2.cvtColor(dp, cv2.COLOR_BGR2GRAY)            # turn the RGB image to grayscale one
-# dp1 = np.zeros( [dp.shape[0]*2,dp.shape[1]*2] )
-# dp1[ int( dp.shape[0]/2) :int( 1.5* dp.shape[0]),int( dp.shape[1]/2) : int( 1.5* dp.shape[1]) ] = dp
-# dp = 1 - dp1/255
-# support = np.where(dp < 17, False , True )
-# support = np.full(dp.shape, False)
-# Rx = dp.shape[0] /4
-# Ry = dp.shape[1] /4
-# for m in range (dp.shape[0]) :
-#     for n in range (dp.shape[1]):
-#         x = dp.shape[0] / 2 - m
-#         y = dp.shape[1] / 2 - n
-#         if abs(x) < Rx  and abs(y) < Ry :
-#         # if abs(x)**2 + abs(y)**2 < dp.shape[0]*100 :
-#             support[m, n] = True
-
-# support = np.where(dp==np.mean(dp), 1,0)
-
 
 camera = forward_propagate(dp, z)
 
