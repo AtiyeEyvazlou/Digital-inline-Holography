@@ -221,7 +221,7 @@ z = 0.01  # in meters
 cam_spacing = 10e-6  # pixel pitch in meters
 n_iter = 31  # iteration number
 
-path = r'F:\uni\M\Project\Atiye Eyvazlou\M.Sc. Simulations\Python Files\input\DH256.bmp'  # path to your using pattern image
+path = r 'C:/path/to/your/image/... '  # path to your using pattern image
 dp = cv2.imread(path)  # read the image
 dp = cv2.cvtColor(dp, cv2.COLOR_BGR2GRAY)  # turn the RGB image to grayscale one
 dp = 1 - dp / 255
